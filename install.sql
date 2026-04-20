@@ -1,0 +1,277 @@
+SET NAMES utf8mb4;
+SET FOREIGN_KEY_CHECKS=0;
+
+CREATE TABLE IF NOT EXISTS roles (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS permissions (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(150) NOT NULL,
+  slug VARCHAR(150) NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS role_permissions (
+  role_id INT NOT NULL,
+  permission_id INT NOT NULL,
+  PRIMARY KEY(role_id,permission_id)
+);
+
+CREATE TABLE IF NOT EXISTS users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  role_id INT NOT NULL,
+  name VARCHAR(150) NOT NULL,
+  email VARCHAR(191) NOT NULL UNIQUE,
+  password VARCHAR(255) NOT NULL,
+  language VARCHAR(10) DEFAULT 'en',
+  avatar VARCHAR(255) NULL,
+  status TINYINT(1) DEFAULT 1,
+  last_login_at DATETIME NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NULL
+);
+
+CREATE TABLE IF NOT EXISTS customers (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(150) NOT NULL,
+  company VARCHAR(150) NULL,
+  email VARCHAR(191) NULL,
+  phone VARCHAR(50) NULL,
+  status VARCHAR(30) DEFAULT 'active',
+  custom_fields JSON NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NULL
+);
+
+CREATE TABLE IF NOT EXISTS leads (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(150) NOT NULL,
+  company VARCHAR(150) NULL,
+  email VARCHAR(191) NULL,
+  phone VARCHAR(50) NULL,
+  source VARCHAR(100) NULL,
+  status VARCHAR(50) DEFAULT 'new',
+  custom_fields JSON NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NULL
+);
+
+CREATE TABLE IF NOT EXISTS projects (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  customer_id INT NULL,
+  name VARCHAR(200) NOT NULL,
+  description TEXT NULL,
+  start_date DATE NULL,
+  due_date DATE NULL,
+  status VARCHAR(30) DEFAULT 'planning',
+  progress INT DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NULL
+);
+
+CREATE TABLE IF NOT EXISTS project_members (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  project_id INT NOT NULL,
+  user_id INT NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS tasks (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  project_id INT NULL,
+  assigned_to INT NULL,
+  title VARCHAR(200) NOT NULL,
+  description TEXT NULL,
+  status VARCHAR(30) DEFAULT 'todo',
+  priority VARCHAR(20) DEFAULT 'medium',
+  start_date DATE NULL,
+  due_date DATE NULL,
+  progress INT DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NULL
+);
+
+CREATE TABLE IF NOT EXISTS task_time_logs (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  task_id INT NOT NULL,
+  user_id INT NOT NULL,
+  started_at DATETIME NULL,
+  ended_at DATETIME NULL,
+  hours DECIMAL(8,2) DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS invoices (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  customer_id INT NULL,
+  invoice_number VARCHAR(50) NOT NULL,
+  issue_date DATE NULL,
+  due_date DATE NULL,
+  subtotal DECIMAL(12,2) DEFAULT 0,
+  tax DECIMAL(12,2) DEFAULT 0,
+  total DECIMAL(12,2) DEFAULT 0,
+  recurring_cycle VARCHAR(20) NULL,
+  status VARCHAR(30) DEFAULT 'draft',
+  pdf_path VARCHAR(255) NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NULL
+);
+
+CREATE TABLE IF NOT EXISTS estimates (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  customer_id INT NULL,
+  estimate_number VARCHAR(50) NOT NULL,
+  issue_date DATE NULL,
+  expiry_date DATE NULL,
+  total DECIMAL(12,2) DEFAULT 0,
+  status VARCHAR(30) DEFAULT 'draft',
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS contracts (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  customer_id INT NULL,
+  title VARCHAR(200) NOT NULL,
+  contract_text LONGTEXT NULL,
+  pdf_path VARCHAR(255) NULL,
+  signature_path VARCHAR(255) NULL,
+  status VARCHAR(30) DEFAULT 'draft',
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS tickets (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  customer_id INT NULL,
+  assigned_to INT NULL,
+  subject VARCHAR(200) NOT NULL,
+  message TEXT NULL,
+  priority VARCHAR(20) DEFAULT 'medium',
+  status VARCHAR(30) DEFAULT 'open',
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NULL
+);
+
+CREATE TABLE IF NOT EXISTS messages (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  sender_id INT NOT NULL,
+  receiver_id INT NULL,
+  is_group TINYINT(1) DEFAULT 0,
+  group_name VARCHAR(100) NULL,
+  message TEXT NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS attendance (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  clock_in DATETIME NULL,
+  clock_out DATETIME NULL,
+  ip_address VARCHAR(64) NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS leaves (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  leave_type VARCHAR(50) DEFAULT 'annual',
+  from_date DATE NOT NULL,
+  to_date DATE NOT NULL,
+  reason TEXT NULL,
+  status VARCHAR(20) DEFAULT 'pending',
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS events (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(150) NOT NULL,
+  description TEXT NULL,
+  start_at DATETIME NOT NULL,
+  end_at DATETIME NOT NULL,
+  created_by INT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS notices (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(150) NOT NULL,
+  body TEXT NOT NULL,
+  audience VARCHAR(50) DEFAULT 'all',
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS notifications (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  type VARCHAR(50) NOT NULL,
+  message VARCHAR(255) NOT NULL,
+  is_read TINYINT(1) DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS finance_records (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  type ENUM('income','expense') NOT NULL,
+  reference_type VARCHAR(50) NULL,
+  reference_id INT NULL,
+  description VARCHAR(255) NULL,
+  amount DECIMAL(12,2) NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS products (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(150) NOT NULL,
+  sku VARCHAR(100) NULL,
+  description TEXT NULL,
+  unit_price DECIMAL(12,2) DEFAULT 0,
+  status TINYINT(1) DEFAULT 1,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS settings (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  setting_key VARCHAR(100) UNIQUE NOT NULL,
+  setting_value TEXT NULL,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS custom_fields (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  module VARCHAR(50) NOT NULL,
+  field_label VARCHAR(100) NOT NULL,
+  field_key VARCHAR(100) NOT NULL,
+  field_type VARCHAR(30) DEFAULT 'text',
+  options TEXT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS files (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  module VARCHAR(50) NOT NULL,
+  module_id INT NULL,
+  file_name VARCHAR(255) NOT NULL,
+  file_path VARCHAR(255) NOT NULL,
+  uploaded_by INT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS activity_logs (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NULL,
+  module VARCHAR(100) NOT NULL,
+  action VARCHAR(100) NOT NULL,
+  ip_address VARCHAR(64) NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO roles (id,name) VALUES (1,'Admin'),(2,'Manager'),(3,'Staff'),(4,'Customer') ON DUPLICATE KEY UPDATE name=VALUES(name);
+INSERT INTO settings (setting_key,setting_value) VALUES
+('company_name','White Label CRM'),
+('header_text','CRM Portal'),
+('footer_text','Powered by White Label CRM'),
+('email_brand_name','CRM Mail')
+ON DUPLICATE KEY UPDATE setting_value=VALUES(setting_value);
+
+SET FOREIGN_KEY_CHECKS=1;
